@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Survey: {{ survey.title }}{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:survey_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Surveys
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-0">
+                            <i class="fas fa-edit me-2"></i>Edit Survey: {{ survey.title }}
+                        </h3>
+                        <p class="text-muted mb-0">{{ survey.description }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'news:survey_delete' survey.pk %}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this survey? This will also delete all responses!')">
+                            <i class="fas fa-trash me-1"></i>Delete Survey
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Survey Info -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ survey.max_slots }}</h5>
+                                    <small>Total Slots</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ survey.available_slots }}</h5>
+                                    <small>Available Slots</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ survey.questions.count }}</h5>
+                                    <small>Questions</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>{{ survey.slot_duration_hours }}h</h5>
+                                    <small>Slot Duration</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Question Form -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Add New Question</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="add_question">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Question Text</label>
+                                            <input type="text" name="question_text" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label class="form-label">Type</label>
+                                            <select name="question_type" class="form-control">
+                                                <option value="text">Text</option>
+                                                <option value="radio">Single Choice</option>
+                                                <option value="checkbox">Multiple Choice</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label class="form-label">Points</label>
+                                            <input type="number" name="points" class="form-control" value="1" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="mb-3">
+                                            <label class="form-label">Correct Answer</label>
+                                            <input type="text" name="correct_answer" class="form-control" placeholder="For text questions">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Add Question
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Questions List -->
+                    {% if survey.questions.all %}
+                        <h5>Current Questions</h5>
+                        {% for question in survey.questions.all %}
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">
+                                            <span class="badge bg-primary me-2">Q{{ question.order }}</span>
+                                            {{ question.text }}
+                                        </h6>
+                                        <div>
+                                            <span class="badge bg-info me-2">{{ question.get_question_type_display }}</span>
+                                            <span class="badge bg-warning me-2">{{ question.points }} pts</span>
+                                            <form method="post" style="display: inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_question">
+                                                <input type="hidden" name="question_id" value="{{ question.id }}">
+                                                <button type="submit" class="btn btn-danger btn-sm" 
+                                                        onclick="return confirm('Delete this question?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    {% if question.question_type == 'text' %}
+                                        <p><strong>Correct Answer:</strong> {{ question.correct_answer|default:"Not set" }}</p>
+                                    {% else %}
+                                        <!-- Add Choice Form -->
+                                        <form method="post" class="mb-3">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="add_choice">
+                                            <input type="hidden" name="question_id" value="{{ question.id }}">
+                                            <div class="row">
+                                                <div class="col-md-8">
+                                                    <input type="text" name="choice_text" class="form-control" placeholder="Choice text" required>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <div class="form-check">
+                                                        <input type="checkbox" name="is_correct" class="form-check-input" id="correct_{{ question.id }}">
+                                                        <label class="form-check-label" for="correct_{{ question.id }}">Correct</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="submit" class="btn btn-success btn-sm">Add Choice</button>
+                                                </div>
+                                            </div>
+                                        </form>
+                                        
+                                        <!-- Choices List -->
+                                        {% if question.choices.all %}
+                                            <div class="mt-3">
+                                                <strong>Choices:</strong>
+                                                {% for choice in question.choices.all %}
+                                                    <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-1">
+                                                        <span>
+                                                            {{ choice.text }}
+                                                            {% if choice.is_correct %}
+                                                                <span class="badge bg-success ms-2">Correct</span>
+                                                            {% endif %}
+                                                        </span>
+                                                        <form method="post" style="display: inline;">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="action" value="delete_choice">
+                                                            <input type="hidden" name="choice_id" value="{{ choice.id }}">
+                                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                                    onclick="return confirm('Delete this choice?')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <p class="text-muted">No choices added yet.</p>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No questions yet</h4>
+                            <p class="text-muted">Add your first question above to get started!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

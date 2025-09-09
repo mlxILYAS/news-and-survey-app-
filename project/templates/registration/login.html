@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+	<h1 class="mb-4">Login</h1>
+	<form method="post">
+		{% csrf_token %}
+		<div class="mb-3">
+			<label class="form-label" for="id_username">Username</label>
+			<input type="text" name="username" maxlength="150" autofocus required id="id_username" class="form-control" />
+		</div>
+		<div class="mb-3">
+			<label class="form-label" for="id_password">Password</label>
+			<input type="password" name="password" required id="id_password" class="form-control" />
+		</div>
+		<button type="submit" class="btn btn-primary">Login</button>
+	</form>
+{% endblock %} 

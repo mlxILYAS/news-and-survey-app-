@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block title %}Survey Submitted{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>Survey Submitted Successfully!
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-poll fa-4x text-success mb-3"></i>
+                        <h3 class="text-success mb-3">Thank you for your participation!</h3>
+                        <p class="lead text-muted mb-4">
+                            Your responses for "<strong>{{ survey.title }}</strong>" have been submitted successfully.
+                        </p>
+                    </div>
+
+                    {% if response and score is not None %}
+                        <div class="card bg-light mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="fas fa-star text-warning me-2"></i>Your Score
+                                </h5>
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <h2 class="text-primary">{{ score }}</h2>
+                                        <small class="text-muted">Points Earned</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h2 class="text-info">{{ max_score }}</h2>
+                                        <small class="text-muted">Maximum Possible</small>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <div class="progress" style="height: 20px;">
+                                        {% if max_score > 0 %}
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                 style="width: {% widthratio score max_score 100 %}%"
+                                                 aria-valuenow="{{ score }}" aria-valuemin="0" aria-valuemax="{{ max_score }}">
+                                                {{ score }}/{{ max_score }}
+                                            </div>
+                                        {% else %}
+                                            <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%">
+                                                Completed
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Survey Details:</strong>
+                        <ul class="mb-0 mt-2 text-start">
+                            <li><strong>Survey:</strong> {{ survey.title }}</li>
+                            <li><strong>Description:</strong> {{ survey.description }}</li>
+                            <li><strong>Submitted:</strong> {{ response.submitted_at|date:'F d, Y H:i' }}</li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="{% url 'news:home' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-home me-2"></i>Back to Home
+                        </a>
+                        <a href="{% url 'news:survey_list' %}" class="btn btn-outline-primary btn-lg ms-2">
+                            <i class="fas fa-list me-2"></i>View Other Surveys
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

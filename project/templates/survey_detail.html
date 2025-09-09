@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block title %}Survey: {{ survey.title }}{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-1">
+                                <i class="fas fa-poll me-2"></i>{{ survey.title }}
+                            </h2>
+                            <p class="mb-0 opacity-75">{{ survey.description }}</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark me-2"><i class="fas fa-clock me-1"></i>{{ survey.slot_duration_hours }}h slot</span>
+                            <span class="badge bg-light text-dark"><i class="fas fa-question-circle me-1"></i>{{ survey.questions.count }} questions</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        
+                        {% for question in survey.questions.all %}
+                            <div class="question-block mb-4 p-3 border rounded bg-light">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="mb-0">
+                                        <span class="badge bg-primary me-2">Q{{ question.order }}</span>
+                                        {{ question.text }}
+                                        {% if question.required %}<span class="text-danger">*</span>{% endif %}
+                                    </h5>
+                                    <span class="badge bg-secondary">{{ question.get_question_type_display|default:"Question" }}</span>
+                                </div>
+                                
+                                {% if question.question_type == 'text' %}
+                                    <div class="mb-3">
+                                        <textarea name="question_{{ question.id }}" class="form-control" rows="3" 
+                                                  placeholder="Type your answer here..." 
+                                                  {% if question.required %}required{% endif %}></textarea>
+                                    </div>
+                                    
+                                {% elif question.question_type == 'radio' %}
+                                    <div class="mb-3">
+                                        {% for choice in question.choices.all %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="choice_{{ choice.id }}" 
+                                                       value="{{ choice.id }}"
+                                                       {% if question.required %}required{% endif %}>
+                                                <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                    {{ choice.text }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elif question.question_type == 'checkbox' %}
+                                    <div class="mb-3">
+                                        {% for choice in question.choices.all %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="choice_{{ choice.id }}" 
+                                                       value="{{ choice.id }}">
+                                                <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                    {{ choice.text }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                {% elif question.question_type == 'multiple_choice' %}
+                                    <div class="mb-3">
+                                        {% for choice in question.choices.all %}
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" 
+                                                       name="question_{{ question.id }}" 
+                                                       id="choice_{{ choice.id }}" 
+                                                       value="{{ choice.id }}"
+                                                       {% if question.required %}required{% endif %}>
+                                                <label class="form-check-label" for="choice_{{ choice.id }}">
+                                                    {{ choice.text }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-1"></i>Submit Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

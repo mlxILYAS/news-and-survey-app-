@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:profile' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-primary text-white">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-5 fw-bold mb-3">
+                                <i class="fas fa-users me-3"></i>User Management
+                            </h1>
+                            <p class="lead mb-4">Manage all users, VIP status, and view survey results</p>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <i class="fas fa-users fa-8x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <h4>{{ users.count }}</h4>
+                    <p class="mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-crown fa-2x mb-2"></i>
+                    <h4>{% for user in users %}{% if user.profile.is_vip %}1{% endif %}{% endfor %}</h4>
+                    <p class="mb-0">VIP Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-poll fa-2x mb-2"></i>
+                    <h4>{% for user in users %}{{ user.survey_responses.count }}{% if not forloop.last %}+{% endif %}{% endfor %}</h4>
+                    <p class="mb-0">Survey Responses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-shield fa-2x mb-2"></i>
+                    <h4>{% for user in users %}{% if user.is_superuser %}1{% endif %}{% endfor %}</h4>
+                    <p class="mb-0">Superusers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">
+                        <i class="fas fa-users me-2"></i>All Users
+                    </h3>
+                    <p class="text-muted mb-0">Manage user accounts and permissions</p>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th><i class="fas fa-user me-2"></i>User</th>
+                                        <th><i class="fas fa-envelope me-2"></i>Email</th>
+                                        <th><i class="fas fa-calendar me-2"></i>Joined</th>
+                                        <th><i class="fas fa-crown me-2"></i>Status</th>
+                                        <th><i class="fas fa-poll me-2"></i>Survey Activity</th>
+                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <div>
+                                                        <strong>{{ user.username }}</strong>
+                                                        {% if user.is_superuser %}
+                                                            <span class="badge bg-danger ms-2">Superuser</span>
+                                                        {% endif %}
+                                                        <br>
+                                                        <small class="text-muted">{{ user.get_full_name|default:"No name" }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ user.email|default:"No email" }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ user.date_joined|date:'M d, Y' }}</span>
+                                            </td>
+                                            <td>
+                                                {% if user.profile.is_vip %}
+                                                    <span class="badge bg-warning text-dark fs-6">
+                                                        <i class="fas fa-crown me-1"></i>VIP
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary fs-6">Standard</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if user.survey_responses.all %}
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                            <i class="fas fa-poll me-1"></i>{{ user.survey_responses.count }} Survey{{ user.survey_responses.count|pluralize }}
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            {% for response in user.survey_responses.all %}
+                                                                <li>
+                                                                    <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#surveyModal{{ response.id }}">
+                                                                        <strong>{{ response.survey.title }}</strong><br>
+                                                                        <small class="text-muted">{{ response.submitted_at|date:'M d, Y H:i' }}</small>
+                                                                    </a>
+                                                                </li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    </div>
+                                                {% else %}
+                                                    <span class="text-muted">
+                                                        <i class="fas fa-minus-circle me-1"></i>No surveys taken
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    {% if not user.is_superuser %}
+                                                        {% if user.profile.is_vip %}
+                                                            <form method="post" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                                <input type="hidden" name="action" value="remove_vip">
+                                                                <button type="submit" class="btn btn-warning btn-sm" 
+                                                                        onclick="return confirm('Remove VIP status from {{ user.username }}?')">
+                                                                    <i class="fas fa-star me-1"></i>Remove VIP
+                                                                </button>
+                                                            </form>
+                                                        {% else %}
+                                                            <form method="post" style="display: inline;">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                                <input type="hidden" name="action" value="make_vip">
+                                                                <button type="submit" class="btn btn-success btn-sm">
+                                                                    <i class="fas fa-crown me-1"></i>Make VIP
+                                                                </button>
+                                                            </form>
+                                                        {% endif %}
+                                                        
+                                                        <form method="post" style="display: inline;">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                                            <input type="hidden" name="action" value="delete_user">
+                                                            <button type="submit" class="btn btn-danger btn-sm" 
+                                                                    onclick="return confirm('Are you sure you want to delete {{ user.username }}? This action cannot be undone!')">
+                                                                <i class="fas fa-trash me-1"></i>Delete
+                                                            </button>
+                                                        </form>
+                                                    {% else %}
+                                                        <span class="text-muted">
+                                                            <i class="fas fa-shield-alt me-1"></i>Protected
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="card border-0 bg-light">
+                                <div class="card-body py-5">
+                                    <i class="fas fa-users fa-4x text-muted mb-4"></i>
+                                    <h3 class="text-muted mb-3">No Users Found</h3>
+                                    <p class="text-muted mb-4">Start by creating some users through the admin panel.</p>
+                                    <a href="/admin/auth/user/add/" class="btn btn-primary btn-lg" target="_blank">
+                                        <i class="fas fa-user-plus me-2"></i>Create User via Admin
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Survey Result Modals -->
+    {% for user in users %}
+        {% for response in user.survey_responses.all %}
+            <div class="modal fade" id="surveyModal{{ response.id }}" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">
+                                Survey Results: {{ response.survey.title }}
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>User:</strong> {{ user.username }}<br>
+                                    <strong>Submitted:</strong> {{ response.submitted_at|date:'F d, Y H:i' }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Survey:</strong> {{ response.survey.title }}<br>
+                                    <strong>Description:</strong> {{ response.survey.description }}
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <h6>Responses:</h6>
+                            {% for answer in response.answers.all %}
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <strong>Q{{ answer.question.order }}: {{ answer.question.text }}</strong>
+                                        <div class="mt-2">
+                                            {% if answer.question.question_type == 'text' %}
+                                                <strong>Answer:</strong> {{ answer.answer_text|default:"No answer provided" }}
+                                            {% elif answer.question.question_type == 'radio' or answer.question.question_type == 'multiple_choice' %}
+                                                <strong>Selected:</strong>
+                                                {% for choice in answer.selected_choices.all %}
+                                                    <span class="badge bg-primary me-1">{{ choice.text }}</span>
+                                                {% empty %}
+                                                    <span class="text-muted">No choice selected</span>
+                                                {% endfor %}
+                                            {% elif answer.question.question_type == 'checkbox' %}
+                                                <strong>Selected:</strong>
+                                                {% for choice in answer.selected_choices.all %}
+                                                    <span class="badge bg-success me-1">{{ choice.text }}</span>
+                                                {% empty %}
+                                                    <span class="text-muted">No choices selected</span>
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p class="text-muted">No responses recorded for this survey.</p>
+                            {% endfor %}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-user-plus fa-2x text-primary mb-3"></i>
+                                <h6>Create New User</h6>
+                                <p class="text-muted small">Use the Django admin panel to create new users.</p>
+                                <a href="/admin/auth/user/add/" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>Go to Admin
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-newspaper fa-2x text-success mb-3"></i>
+                                <h6>Create Article</h6>
+                                <p class="text-muted small">Write and publish news articles.</p>
+                                <a href="{% url 'news:article_create' %}" class="btn btn-success btn-sm">
+                                    <i class="fas fa-plus me-1"></i>Create Article
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3 border rounded">
+                                <i class="fas fa-poll fa-2x text-info mb-3"></i>
+                                <h6>Create Survey</h6>
+                                <p class="text-muted small">Design surveys for VIP users.</p>
+                                <a href="{% url 'news:survey_create' %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-plus me-1"></i>Create Survey
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block title %}Survey Results{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:profile' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Profile
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="fw-bold mb-1">
+                                <i class="fas fa-chart-bar me-2"></i>Survey Results Overview
+                            </h2>
+                            <p class="mb-0 opacity-75">Comprehensive view of all survey responses and user participation</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-dark me-2"><i class="fas fa-poll me-1"></i>{{ surveys.count }} surveys</span>
+                            <span class="badge bg-light text-dark"><i class="fas fa-users me-1"></i>{{ total_users }} VIP users</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <!-- Statistics Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ surveys.count }}</h4>
+                                    <p class="mb-0">Total Surveys</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_responses }}</h4>
+                                    <p class="mb-0">Total Responses</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ total_users }}</h4>
+                                    <p class="mb-0">VIP Users</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Survey Details -->
+                    {% if surveys %}
+                        {% for survey in surveys %}
+                            <div class="card mb-4">
+                                <div class="card-header bg-light">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0 fw-bold">{{ survey.title }}</h5>
+                                        <span class="badge bg-primary">
+                                            <i class="fas fa-reply me-1"></i>{{ survey.responses.count }} Response{{ survey.responses.count|pluralize }}
+                                        </span>
+                                    </div>
+                                    <p class="text-muted mb-0">{{ survey.description }}</p>
+                                </div>
+                                <div class="card-body">
+                                    {% if survey.responses.all %}
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th><i class="fas fa-user me-2"></i>User</th>
+                                                        <th><i class="fas fa-crown me-2"></i>Status</th>
+                                                        <th><i class="fas fa-clock me-2"></i>Submitted</th>
+                                                        <th><i class="fas fa-cogs me-2"></i>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for response in survey.responses.all %}
+                                                        <tr>
+                                                            <td>
+                                                                <strong>{{ response.user.username }}</strong>
+                                                                {% if response.user.is_superuser %}
+                                                                    <span class="badge bg-danger ms-1">Superuser</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>
+                                                                {% if response.user.profile.is_vip %}
+                                                                    <span class="badge bg-success">VIP</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary">Standard</span>
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ response.submitted_at|date:'M d, Y H:i' }}</td>
+                                                            <td>
+                                                                <button class="btn btn-outline-info btn-sm" data-bs-toggle="modal" data-bs-target="#responseModal{{ response.id }}">
+                                                                    <i class="fas fa-eye"></i> View Details
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% else %}
+                                        <p class="text-muted text-center py-3">No responses yet for this survey.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-poll fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">No surveys created yet</h4>
+                            <p class="text-muted">Create your first survey to start collecting responses!</p>
+                            <a href="{% url 'news:survey_create' %}" class="btn btn-primary">Create Survey</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Detail Modals -->
+{% for survey in surveys %}
+    {% for response in survey.responses.all %}
+        <div class="modal fade" id="responseModal{{ response.id }}" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            Response Details: {{ survey.title }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <strong>User:</strong> {{ response.user.username }}<br>
+                                <strong>Email:</strong> {{ response.user.email|default:"No email" }}<br>
+                                <strong>VIP Status:</strong> 
+                                {% if response.user.profile.is_vip %}
+                                    <span class="badge bg-success">VIP</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Standard</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Survey:</strong> {{ survey.title }}<br>
+                                <strong>Submitted:</strong> {{ response.submitted_at|date:'F d, Y H:i' }}<br>
+                                <strong>Response ID:</strong> #{{ response.id }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h6>Question Responses:</h6>
+                        {% for answer in response.answers.all %}
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <strong>Q{{ answer.question.order }}: {{ answer.question.text }}</strong>
+                                    <small class="text-muted d-block">Type: {{ answer.question.get_question_type_display }}</small>
+                                    <div class="mt-2">
+                                        {% if answer.question.question_type == 'text' %}
+                                            <strong>Answer:</strong> 
+                                            <div class="mt-1 p-2 bg-light rounded">
+                                                {{ answer.answer_text|default:"No answer provided"|linebreaks }}
+                                            </div>
+                                        {% elif answer.question.question_type == 'radio' or answer.question.question_type == 'multiple_choice' %}
+                                            <strong>Selected:</strong>
+                                            {% for choice in answer.selected_choices.all %}
+                                                <span class="badge bg-primary me-1">{{ choice.text }}</span>
+                                            {% empty %}
+                                                <span class="text-muted">No choice selected</span>
+                                            {% endfor %}
+                                        {% elif answer.question.question_type == 'checkbox' %}
+                                            <strong>Selected:</strong>
+                                            {% for choice in answer.selected_choices.all %}
+                                                <span class="badge bg-success me-1">{{ choice.text }}</span>
+                                            {% empty %}
+                                                <span class="text-muted">No choices selected</span>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No responses recorded for this survey.</p>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a href="{% url 'news:user_management' %}" class="btn btn-primary">View User Profile</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endfor %}
+{% endblock %} 

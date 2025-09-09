@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}Surveys{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:home' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Home
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-primary text-white">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-5 fw-bold mb-3">
+                                <i class="fas fa-poll me-3"></i>Survey Center
+                            </h1>
+                            <p class="lead mb-4">Discover and participate in exclusive surveys designed for VIP members</p>
+                            {% if user.is_authenticated and user.is_superuser %}
+                                <a class="btn btn-light btn-lg" href="{% url 'news:survey_create' %}">
+                                    <i class="fas fa-plus me-2"></i>Create New Survey
+                                </a>
+                            {% endif %}
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <i class="fas fa-poll fa-8x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    {% if surveys %}
+        <div class="row mb-5">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-poll fa-2x mb-2"></i>
+                        <h4>{{ surveys.count }}</h4>
+                        <p class="mb-0">Total Surveys</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h4>{% for survey in surveys %}{{ survey.available_slots }}{% if not forloop.last %}+{% endif %}{% endfor %}</h4>
+                        <p class="mb-0">Available Slots</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-question-circle fa-2x mb-2"></i>
+                        <h4>{% for survey in surveys %}{{ survey.questions.count }}{% if not forloop.last %}+{% endif %}{% endfor %}</h4>
+                        <p class="mb-0">Total Questions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-users fa-2x mb-2"></i>
+                        <h4>{% if user.profile.is_vip %}VIP{% elif user.is_superuser %}Admin{% else %}Standard{% endif %}</h4>
+                        <p class="mb-0">Your Access</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if surveys %}
+        <div class="row">
+		{% for survey in surveys %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0 survey-card" style="transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                        <div class="card-header {% if survey.has_available_slot %}bg-gradient-success{% else %}bg-gradient-danger{% endif %} text-white">
+                            <h5 class="card-title mb-0 fw-bold">
+                                <i class="fas fa-poll me-2"></i>{{ survey.title }}
+                            </h5>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <p class="card-text text-muted">{{ survey.description|truncatechars:120 }}</p>
+                            
+                            <!-- Enhanced Slot Information -->
+                            <div class="row text-center mb-3">
+                                <div class="col-4">
+                                    <div class="border rounded p-2 bg-light">
+                                        <h6 class="mb-0 text-primary fw-bold">{{ survey.max_slots }}</h6>
+                                        <small class="text-muted">Total Slots</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2 bg-light">
+                                        <h6 class="mb-0 text-success fw-bold">{{ survey.available_slots }}</h6>
+                                        <small class="text-muted">Available</small>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="border rounded p-2 bg-light">
+                                        <h6 class="mb-0 text-warning fw-bold">{{ survey.questions.count }}</h6>
+                                        <small class="text-muted">Questions</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small class="text-muted">Slot Usage</small>
+                                    <small class="text-muted">{{ survey.max_slots|add:"-"|add:survey.available_slots }}/{{ survey.max_slots }}</small>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar {% if survey.has_available_slot %}bg-success{% else %}bg-danger{% endif %}" role="progressbar" 
+                                         style="width: {% widthratio survey.max_slots|add:"-"|add:survey.available_slots survey.max_slots 100 %}%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Status Badge -->
+                            {% if survey.has_available_slot %}
+                                <span class="badge bg-success mb-3 fs-6">
+                                    <i class="fas fa-check-circle me-1"></i>Slots Available
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger mb-3 fs-6">
+                                    <i class="fas fa-times-circle me-1"></i>No Slots Left
+                                </span>
+                            {% endif %}
+                            
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>{{ survey.slot_duration_hours }}h slots
+                                </small>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>{{ survey.created_at|date:'M d, Y' }}
+                                </small>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between">
+                                {% if user.is_authenticated and user.is_superuser %}
+                                    <!-- Superuser Actions -->
+                                    <div class="d-flex gap-1">
+                                        <a href="{% url 'news:survey_edit' survey.pk %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'news:survey_detail' survey.pk %}" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'news:survey_delete' survey.pk %}" class="btn btn-danger btn-sm"
+                                           onclick="return confirm('Delete this survey? This will also delete all responses!')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                {% elif user.is_authenticated and user.profile.is_vip %}
+                                    {# VIP users: no action buttons (intentionally blank) #}
+                                {% else %}
+                                    <!-- Regular User -->
+                                    <span class="text-muted text-center w-100">VIP access required</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+				</div>
+		{% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <div class="card border-0 bg-light">
+                <div class="card-body py-5">
+                    <i class="fas fa-poll fa-4x text-muted mb-4"></i>
+                    <h3 class="text-muted mb-3">No Surveys Yet</h3>
+                    {% if user.is_authenticated and user.is_superuser %}
+                        <p class="text-muted mb-4">Create your first survey to start collecting responses from VIP users!</p>
+                        <a href="{% url 'news:survey_create' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Create First Survey
+                        </a>
+                    {% else %}
+                        <p class="text-muted mb-4">Surveys will appear here once created by administrators.</p>
+                        <a href="{% url 'news:home' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Home
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

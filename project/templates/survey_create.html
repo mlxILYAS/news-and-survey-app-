@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Survey{% endblock %}
+
+{% block back_button %}
+<div class="mb-3">
+    <a href="{% url 'news:survey_list' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Surveys
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 bg-gradient-success text-white">
+                <div class="card-body p-5">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h1 class="display-5 fw-bold mb-3">
+                                <i class="fas fa-poll me-3"></i>Create New Survey
+                            </h1>
+                            <p class="lead mb-4">Design exclusive surveys with limited slots for VIP users</p>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <i class="fas fa-plus-circle fa-8x opacity-75"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h3 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Survey Configuration
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Please correct the errors below:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for field, errors in form.errors.items %}
+                                    {% for error in errors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-heading me-2"></i>Survey Title
+                            </label>
+                            {{ form.title }}
+                            <div class="form-text">Choose an engaging title for your survey</div>
+                            {% if form.title.errors %}
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ form.title.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                <i class="fas fa-align-left me-2"></i>Description
+                            </label>
+                            {{ form.description }}
+                            <div class="form-text">Explain what this survey is about and what participants can expect</div>
+                            {% if form.description.errors %}
+                            <div class="text-danger mt-1">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ form.description.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.max_slots.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-users me-2"></i>Maximum Slots
+                                    </label>
+                                    {{ form.max_slots }}
+                                    <div class="form-text">How many VIP users can take this survey</div>
+                                    {% if form.max_slots.errors %}
+                                    <div class="text-danger mt-1">
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ form.max_slots.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-4">
+                                    <label for="{{ form.slot_duration_hours.id_for_label }}" class="form-label fw-bold">
+                                        <i class="fas fa-clock me-2"></i>Slot Duration (Hours)
+                                    </label>
+                                    {{ form.slot_duration_hours }}
+                                    <div class="form-text">How long each slot remains valid</div>
+                                    {% if form.slot_duration_hours.errors %}
+                                    <div class="text-danger mt-1">
+                                        <i class="fas fa-exclamation-circle me-1"></i>{{ form.slot_duration_hours.errors.0 }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'news:survey_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-save me-2"></i>Create Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Info Card -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>How It Works
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-edit fa-2x text-primary mb-2"></i>
+                            <h6>1. Create Survey</h6>
+                            <small class="text-muted">Set title, description, and slot limits</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-question-circle fa-2x text-warning mb-2"></i>
+                            <h6>2. Add Questions</h6>
+                            <small class="text-muted">Create questions with correct answers</small>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <i class="fas fa-users fa-2x text-success mb-2"></i>
+                            <h6>3. VIP Users Answer</h6>
+                            <small class="text-muted">Limited slots available for VIP members</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
